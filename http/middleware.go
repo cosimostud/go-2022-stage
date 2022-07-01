@@ -24,3 +24,8 @@ func (s *ServerAPI) RecoverPanicMiddleware(next echo.HandlerFunc) echo.HandlerFu
 		return next(c)
 	}
 }
+
+// func authCity(c echo.Context) (*entity.City, error) {
+
+// 	if claims, ok := c.Get(claimsContextParam).(*entity)
+// }
