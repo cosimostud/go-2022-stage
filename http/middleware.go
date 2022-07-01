@@ -2,6 +2,7 @@ package http
 
 import (
 	"mysql/app/apperr"
+	"mysql/app/entity"
 
 	"github.com/labstack/echo/v4"
 )
@@ -25,7 +26,11 @@ func (s *ServerAPI) RecoverPanicMiddleware(next echo.HandlerFunc) echo.HandlerFu
 	}
 }
 
-// func authCity(c echo.Context) (*entity.City, error) {
+func AuthCity(c echo.Context) (*entity.City, error) {
 
-// 	if claims, ok := c.Get(claimsContextParam).(*entity)
-// }
+	if claims, ok := c.Get(claimsContextParam).(*entity.AppClaims); ok {
+		return claims.Auth.City, nil
+	}
+
+	return nil, apperr.Errorf(apperr.EUNAUTHORIZED, "no auth city found in context")
+}

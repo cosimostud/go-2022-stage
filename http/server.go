@@ -158,7 +158,7 @@ func ListenAndServeTLSRedirect(domain string) error {
 }
 
 // extractJWT from the *http.Request if omitted or wrong formed, empty string is returned
-func extractJWT(r *http.Request) string {
+func ExtractJWT(r *http.Request) string {
 	bearToken := r.Header.Get("Authorization")
 	strArr := strings.Split(bearToken, " ")
 	if len(strArr) == 2 {
