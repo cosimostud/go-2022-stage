@@ -137,6 +137,9 @@ func (s *ServerAPI) UseTLS() bool {
 func (s *ServerAPI) registerRoutes(g *echo.Group) {
 	cityGroup := g.Group("/city")
 	s.registerCityRoutes(cityGroup)
+
+	// authGroup := g.Group("/auth")
+	// s.registerAuthRoutes(authGroup)
 }
 
 // registerCityRoutes registers all routes for the API group city.
