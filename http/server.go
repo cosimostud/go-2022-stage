@@ -3,11 +3,14 @@ package http
 import (
 	"context"
 	"fmt"
+	"mysql/app/apperr"
+	"mysql/app/entity"
 	"mysql/app/service"
 	"net"
 	"net/http"
 	"strings"
 	"time"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -144,7 +147,80 @@ func (s *ServerAPI) registerRoutes(g *echo.Group) {
 
 // registerCityRoutes registers all routes for the API group city.
 func (s *ServerAPI) registerCityRoutes(g *echo.Group) {
-	//g.POST("/login", s.AuthLoginHandler)
+	g.POST("", func(c echo.Context) error {
+		var city entity.City
+		if err := c.Bind(&city); err != nil {
+			return ErrorResponseJSON(c, apperr.Errorf(apperr.EINVALID, "invalid request"), nil)
+		}
+		
+		if err := s.CityService.CreateCity(c.Request().Context(), &city); err != nil{
+			return ErrorResponseJSON(c, err, nil)
+		}
+		
+		return SuccessResponseJSON(c, http.StatusOK, echo.Map{
+			"city": city,
+		})
+	})
+
+	g.GET("/:name", func(c echo.Context) error {
+		cityName := c.Param("name")
+		cityFilter := service.CityFilter{Name: &cityName}
+		cities, err := s.CityService.FindCities(c.Request().Context(), cityFilter)
+		if err != nil {
+			return ErrorResponseJSON(c, err, nil)
+		}
+
+		if len(cities) == 0 {
+			return ErrorResponseJSON(c, apperr.Errorf(apperr.ENOTFOUND, "Città non trovata"), nil)
+		}
+
+		return SuccessResponseJSON(c, http.StatusOK, echo.Map{
+			"city": cities[0],
+		})
+	})
+
+	g.DELETE("/:name", func(c echo.Context) error {
+		
+		id, err := s.CityService.FindIdByName(c.Request().Context(), c.Param("name"))
+		if err != nil {
+			return ErrorResponseJSON(c, err, nil)
+		}
+
+		if err := s.CityService.DeleteCity(c.Request().Context(), *id); err != nil {
+			return ErrorResponseJSON(c, err, nil)
+		}
+
+		return SuccessResponseJSON(c, http.StatusOK, echo.Map{
+			"città eliminata correttamente con id = ": id,
+		})
+	})
+
+	g.PATCH("/:name :newPopulation", func(c echo.Context) error {
+		
+		id, err := s.CityService.FindIdByName(c.Request().Context(), c.Param("name"))
+		if err != nil {
+			return ErrorResponseJSON(c, err, nil)
+		}
+
+		newPopulation, err := strconv.Atoi(c.Param("newPopulation"))
+		if err != nil {
+			return ErrorResponseJSON(c, apperr.Errorf(apperr.EINTERNAL, "errore"), nil)
+		}
+		cup := service.CityUpdate{Population: &newPopulation}
+
+		if err := s.CityService.UpdateCity(c.Request().Context(), *id, cup); err != nil {
+			return ErrorResponseJSON(c, err, nil)
+		}
+
+		city, err := s.CityService.FindCities(c.Request().Context(), service.CityFilter{Id: id})
+		if err != nil {
+			return ErrorResponseJSON(c, err, nil)
+		}
+
+		return SuccessResponseJSON(c, http.StatusOK, echo.Map{
+			"città aggiornata correttamente": city,
+		})
+	})
 }
 
 // SuccessResponseJSON returns a JSON response with the given status code and data.
