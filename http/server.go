@@ -195,7 +195,7 @@ func (s *ServerAPI) registerCityRoutes(g *echo.Group) {
 		})
 	})
 
-	g.PATCH("/:name :newPopulation", func(c echo.Context) error {
+	g.PATCH("/:name/:newPopulation", func(c echo.Context) error {
 		
 		id, err := s.CityService.FindIdByName(c.Request().Context(), c.Param("name"))
 		if err != nil {
