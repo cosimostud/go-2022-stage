@@ -106,10 +106,13 @@ func testSql() {
 	}
 
 	popLte := 400000
+	findLte := service.CityFilter{PopulationLte: &popLte}
 	popGte := 600000
+	findGte := service.CityFilter{PopulationGte: &popGte}
 	popEq := 200000
+	findEq := service.CityFilter{Population: &popEq}
 
-	if cities, err := sqlCityService.FindCityByPopulationLte(ctx, popLte); err != nil {
+	if cities, err := sqlCityService.FindCities(ctx, findLte); err != nil {
 		panic(err)
 	} else {
 		fmt.Println("Città filtrate con popolazione < ", popLte)
@@ -119,7 +122,7 @@ func testSql() {
 		fmt.Println("--------------------------")
 	}
 
-	if cities, err := sqlCityService.FindCityByPopulationGte(ctx, popGte); err != nil {
+	if cities, err := sqlCityService.FindCities(ctx, findGte); err != nil {
 		panic(err)
 	} else {
 		fmt.Println("Città filtrate con popolazione > ", popGte)
@@ -129,7 +132,7 @@ func testSql() {
 		fmt.Println("--------------------------")
 	}
 
-	if cities, err := sqlCityService.FindCityByPopulation(ctx, popEq); err != nil {
+	if cities, err := sqlCityService.FindCities(ctx, findEq); err != nil {
 		panic(err)
 	} else {
 		fmt.Println("Città filtrate con popolazione = ", popEq)

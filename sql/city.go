@@ -81,25 +81,6 @@ func (s *CityService) UpdateCity(ctx context.Context, id int64, cup service.City
 	return nil
 }
 
-func (s *CityService) FindCityById(ctx context.Context, id int64) (city *entity.City, err error) {
-
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-	user, err := findCityById(ctx, tx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return nil, apperr.Errorf(apperr.EINTERNAL, "errore: %v", err)
-	}
-
-	return user, nil
-}
-
 func (s *CityService) FindCities(ctx context.Context, filter service.CityFilter) (cities entity.Cities, err error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -107,63 +88,6 @@ func (s *CityService) FindCities(ctx context.Context, filter service.CityFilter)
 	}
 	defer tx.Rollback()
 	cities, err = findCities(ctx, tx, filter)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return nil, apperr.Errorf(apperr.EINTERNAL, "errore: %v", err)
-	}
-
-	return cities, nil
-}
-
-func (s *CityService) FindCityByPopulation(ctx context.Context, population int) (cities entity.Cities, err error) {
-
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-	cities, err = findCityByPopulation(ctx, tx, population)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return nil, apperr.Errorf(apperr.EINTERNAL, "errore: %v", err)
-	}
-
-	return cities, nil
-}
-
-func (s *CityService) FindCityByPopulationGte(ctx context.Context, population int) (cities entity.Cities, err error) {
-
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-	cities, err = findCityByPopulationGte(ctx, tx, population)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return nil, apperr.Errorf(apperr.EINTERNAL, "errore: %v", err)
-	}
-
-	return cities, nil
-}
-
-func (s *CityService) FindCityByPopulationLte(ctx context.Context, population int) (cities entity.Cities, err error) {
-
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-	cities, err = findCityByPopulationLte(ctx, tx, population)
 	if err != nil {
 		return nil, err
 	}
