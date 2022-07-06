@@ -183,7 +183,7 @@ func findIdByName(ctx context.Context, tx *sql.Tx, name string) (id *int64, err 
 
 	var Id int64
 
-	for rows.Next() {
+	if rows.Next() {
 
 		var city entity.City
 

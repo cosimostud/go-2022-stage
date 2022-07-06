@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -152,11 +151,11 @@ func (s *ServerAPI) registerCityRoutes(g *echo.Group) {
 		if err := c.Bind(&city); err != nil {
 			return ErrorResponseJSON(c, apperr.Errorf(apperr.EINVALID, "invalid request"), nil)
 		}
-		
-		if err := s.CityService.CreateCity(c.Request().Context(), &city); err != nil{
+
+		if err := s.CityService.CreateCity(c.Request().Context(), &city); err != nil {
 			return ErrorResponseJSON(c, err, nil)
 		}
-		
+
 		return SuccessResponseJSON(c, http.StatusOK, echo.Map{
 			"city": city,
 		})
@@ -180,7 +179,7 @@ func (s *ServerAPI) registerCityRoutes(g *echo.Group) {
 	})
 
 	g.DELETE("/:name", func(c echo.Context) error {
-		
+
 		id, err := s.CityService.FindIdByName(c.Request().Context(), c.Param("name"))
 		if err != nil {
 			return ErrorResponseJSON(c, err, nil)
@@ -195,30 +194,46 @@ func (s *ServerAPI) registerCityRoutes(g *echo.Group) {
 		})
 	})
 
-	g.PATCH("/:name/:newPopulation", func(c echo.Context) error {
-		
+	g.PATCH("/:name", func(c echo.Context) error {
+
 		id, err := s.CityService.FindIdByName(c.Request().Context(), c.Param("name"))
 		if err != nil {
 			return ErrorResponseJSON(c, err, nil)
 		}
 
-		newPopulation, err := strconv.Atoi(c.Param("newPopulation"))
-		if err != nil {
-			return ErrorResponseJSON(c, apperr.Errorf(apperr.EINTERNAL, "errore"), nil)
+		var upd service.CityUpdate
+		if err := c.Bind(&upd); err != nil {
+			return ErrorResponseJSON(c, apperr.Errorf(apperr.EINVALID, "invalid request"), nil)
 		}
-		cup := service.CityUpdate{Population: &newPopulation}
 
-		if err := s.CityService.UpdateCity(c.Request().Context(), *id, cup); err != nil {
+		if err := s.CityService.UpdateCity(c.Request().Context(), *id, upd); err != nil {
 			return ErrorResponseJSON(c, err, nil)
 		}
 
-		city, err := s.CityService.FindCities(c.Request().Context(), service.CityFilter{Id: id})
+		cities, err := s.CityService.FindCities(c.Request().Context(), service.CityFilter{Id: id})
 		if err != nil {
 			return ErrorResponseJSON(c, err, nil)
 		}
 
 		return SuccessResponseJSON(c, http.StatusOK, echo.Map{
-			"città aggiornata correttamente": city,
+			"city": cities[0],
+		})
+	})
+
+	g.POST("/search", func(c echo.Context) error {
+
+		var fil service.CityFilter
+		if err := c.Bind(&fil); err != nil {
+			return ErrorResponseJSON(c, apperr.Errorf(apperr.EINVALID, "invalid request"), nil)
+		}
+
+		cities, err := s.CityService.FindCities(c.Request().Context(), fil)
+		if err != nil {
+			return ErrorResponseJSON(c, err, nil)
+		}
+
+		return SuccessResponseJSON(c, http.StatusOK, echo.Map{
+			"cities": cities,
 		})
 	})
 }
