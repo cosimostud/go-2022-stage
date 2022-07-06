@@ -232,9 +232,18 @@ func (s *ServerAPI) registerCityRoutes(g *echo.Group) {
 			return ErrorResponseJSON(c, err, nil)
 		}
 
-		return SuccessResponseJSON(c, http.StatusOK, echo.Map{
-			"cities": cities,
-		})
+		switch len(cities) {
+		case 0:
+			return ErrorResponseJSON(c, apperr.Errorf(apperr.ENOTFOUND, "nessuna città corrispondente"), nil)
+		case 1:
+			return SuccessResponseJSON(c, http.StatusOK, echo.Map{
+				"city": cities[0],
+			})
+		default:
+			return SuccessResponseJSON(c, http.StatusOK, echo.Map{
+				"cities": cities,
+			})
+		}
 	})
 }
 
