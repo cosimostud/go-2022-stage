@@ -21,6 +21,7 @@ type CityUpdate struct {
 type CityFilter struct {
 	Id            *int64
 	Name          *string
+	Names         []string
 	Population    *int
 	PopulationGte *int
 	PopulationLte *int

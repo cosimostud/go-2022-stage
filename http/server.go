@@ -39,6 +39,8 @@ type ServerAPI struct {
 
 	// Services used by HTTP handler.
 	CityService service.CityService
+
+	Users map[int64]*entity.User
 }
 
 // NewServerAPI creates a new API server.

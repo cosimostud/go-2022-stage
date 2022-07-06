@@ -26,11 +26,12 @@ func (s *ServerAPI) RecoverPanicMiddleware(next echo.HandlerFunc) echo.HandlerFu
 	}
 }
 
-func AuthCity(c echo.Context) (*entity.City, error) {
+func AuthUser(c echo.Context) (*entity.User, error) {
 
 	if claims, ok := c.Get(claimsContextParam).(*entity.AppClaims); ok {
-		return claims.Auth.City, nil
+		return claims.User, nil
 	}
 
-	return nil, apperr.Errorf(apperr.EUNAUTHORIZED, "no auth city found in context")
+	// this should never happen
+	return nil, apperr.Errorf(apperr.EUNAUTHORIZED, "no auth user found in context")
 }
