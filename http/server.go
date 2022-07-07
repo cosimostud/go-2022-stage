@@ -6,9 +6,11 @@ import (
 	"mysql/app/apperr"
 	"mysql/app/entity"
 	"mysql/app/service"
+	"mysql/jwt"
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -18,6 +20,39 @@ import (
 
 // ShutdownTimeout is the time given for outstanding requests to finish before shutdown.
 const ShutdownTimeout = 1 * time.Second
+
+var usersMux sync.RWMutex
+
+var users = map[int64]*entity.User{
+
+	1:{
+		ID: 1,
+		Username: "Pippoboss",
+		Name: "Pippo",
+		Password: "pippogamer89",
+	},
+
+	2:{
+		ID: 2,
+		Username: "Mangaka96",
+		Name: "Luca Molinari",
+		Password: "deathshield2018",
+	},
+
+	3:{
+		ID: 3,
+		Username: "Cydonia",
+		Name: "Francesco Cilurzo",
+		Password: "chiarafilm96",
+	},
+
+	4:{
+		ID: 4,
+		Username: "Sabaku no maiku",
+		Name: "Michele Poggi",
+		Password: "phenrirmailoki$$",
+	},
+}
 
 // ServerAPI is the main server for the API
 type ServerAPI struct {
@@ -36,6 +71,8 @@ type ServerAPI struct {
 
 	// JWTSecret is the secret used to sign JWT tokens.
 	JWTSecret string
+
+	JWTService *jwt.JWTService
 
 	// Services used by HTTP handler.
 	CityService service.CityService
@@ -139,11 +176,59 @@ func (s *ServerAPI) UseTLS() bool {
 
 // registerRoutes registers all routes for the API.
 func (s *ServerAPI) registerRoutes(g *echo.Group) {
+	authGroup := g.Group("/auth")
+	s.registerAuthRoutes(authGroup)
+
 	cityGroup := g.Group("/city")
 	s.registerCityRoutes(cityGroup)
+}
 
-	// authGroup := g.Group("/auth")
-	// s.registerAuthRoutes(authGroup)
+func (s *ServerAPI) registerAuthRoutes(g *echo.Group) {
+	g.POST("/login", func(c echo.Context) error {
+		type LoginParams struct {
+			Username string `json:"username"`
+			Password string `json:"password"`
+		}
+
+		var login LoginParams
+		if err := c.Bind(&login); err != nil {
+			return ErrorResponseJSON(c, apperr.Errorf(apperr.EINVALID, "invalid request"), nil)
+		}
+
+		if login.Username == "" || login.Password == "" {
+			return ErrorResponseJSON(c, apperr.Errorf(apperr.EINVALID, "dati inseriti non validi"), nil)
+		}
+
+		var user *entity.User
+
+		usersMux.RLock()
+		defer usersMux.RUnlock()
+		for _, u := range users {
+			if u.Username == login.Username {
+				user = u
+				break
+			}
+		}
+
+		if user == nil {
+			return ErrorResponseJSON(c, apperr.Errorf(apperr.ENOTFOUND, "utente non trovato"), nil)
+		}
+
+		// nota: questo tipo di errore non è corretto, meglio essere generici con la restituzione di errore per
+		// un login non autorizzato
+		if user.Password != login.Password {
+			return ErrorResponseJSON(c, apperr.Errorf(apperr.EUNAUTHORIZED, "password non valida"), nil)
+		}
+
+		token, err := s.JWTService.Exchange(c.Request().Context(), user)
+		if err != nil {
+			return err
+		}
+
+		return SuccessResponseJSON(c, http.StatusOK, echo.Map{
+			"token": token,
+		})
+	})
 }
 
 // registerCityRoutes registers all routes for the API group city.

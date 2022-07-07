@@ -9,6 +9,7 @@ import (
 	"mysql/app/service"
 	"mysql/http"
 	apphttp "mysql/http"
+	"mysql/jwt"
 	appsql "mysql/sql"
 	"os"
 	"os/signal"
@@ -47,11 +48,14 @@ func main() {
 func run(ctx context.Context, db *sql.DB) error {
 
 	sqlCityService := appsql.NewCityService(db)
+	jwtservice := jwt.NewJWTService("lafsjghhpv4950&%$%£&)%éç*§°ç!")
 
 	HTTPServerAPI := apphttp.NewServerAPI()
 
 	HTTPServerAPI.Addr = ":8080"
 	HTTPServerAPI.CityService = sqlCityService
+
+	HTTPServerAPI.JWTService = jwtservice
 
 	if err := HTTPServerAPI.Open(); err != nil {
 		return err

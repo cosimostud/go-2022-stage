@@ -20,6 +20,12 @@ type JWTService struct {
 	JWTBlacklistService service.JWTBlacklistService
 }
 
+func NewJWTService (secret string) *JWTService{
+	return &JWTService{
+		Secret: secret,
+	}
+}
+
 // Exchange implements service.JWTService
 func (s *JWTService) Exchange(ctx context.Context, auth *entity.User) (*entity.Token, error) {
 	select {
