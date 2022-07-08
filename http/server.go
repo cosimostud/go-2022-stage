@@ -210,14 +210,18 @@ func (s *ServerAPI) registerAuthRoutes(g *echo.Group) {
 			}
 		}
 
-		if user == nil {
-			return ErrorResponseJSON(c, apperr.Errorf(apperr.ENOTFOUND, "utente non trovato"), nil)
-		}
-
 		// nota: questo tipo di errore non è corretto, meglio essere generici con la restituzione di errore per
 		// un login non autorizzato
-		if user.Password != login.Password {
-			return ErrorResponseJSON(c, apperr.Errorf(apperr.EUNAUTHORIZED, "password non valida"), nil)
+		// if user == nil {
+		// 	return ErrorResponseJSON(c, apperr.Errorf(apperr.ENOTFOUND, "utente non trovato"), nil)
+		// }
+		
+		// if user.Password != login.Password {
+		// 	return ErrorResponseJSON(c, apperr.Errorf(apperr.EUNAUTHORIZED, "password non valida"), nil)
+		// }
+
+		if user == nil || user.Password != login.Password {
+			return ErrorResponseJSON(c, apperr.Errorf(apperr.EUNAUTHORIZED, "username e/o password invalidi"), nil)
 		}
 
 		token, err := s.JWTService.Exchange(c.Request().Context(), user)
